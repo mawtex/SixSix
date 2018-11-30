@@ -1,0 +1,6 @@
+; Orckestra website deployment for Azure App Service website (kudu)
+; See https://github.com/projectkudu/kudu/wiki/Customizing-deployments
+
+[config]
+COMMAND = .deploy\deployment.cmd
+

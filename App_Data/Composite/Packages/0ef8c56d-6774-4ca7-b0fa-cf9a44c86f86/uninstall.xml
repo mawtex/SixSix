@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageInstaller xmlns="http://www.composite.net/ns/management/packageinstaller/1.0">
+  <PackageFragmentUninstallers>
+    <Add uninstallerType="Composite.Core.PackageSystem.PackageFragmentInstallers.FilePackageFragmentUninstaller,Composite">
+      <Files xmlns="">
+        <File filename="~\App_Data\Composite\TreeDefinitions\Orckestra.Azure.CloudPublisher.xml" />
+        <File filename="~\App_Data\sshkeys\readme.txt" />
+        <File filename="~\.deployment" />
+        <File filename="~\.gitignore" />
+        <File filename="~\.deploy\deployment.cmd" />
+        <File filename="~\.deploy\local-website-deployment.ps1" />
+        <File filename="~\Bin\LibGit2Sharp.dll" />
+        <File filename="~\Bin\lib/win32/x64/git2-ssh-baa87df.dll" />
+        <File filename="~\Bin\lib/win32/x64/libssh2.dll" />
+        <File filename="~\Bin\lib/win32/x64/zlib.dll" />
+        <File filename="~\Bin\lib/win32/x86/git2-ssh-baa87df.dll" />
+        <File filename="~\Bin\lib/win32/x86/libssh2.dll" />
+        <File filename="~\Bin\lib/win32/x86/zlib.dll" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\view/init.cshtml" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\view/master.cshtml" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\view/push.cshtml" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\view/status.cshtml" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\view/styles.css" />
+        <File filename="~\Composite\InstalledPackages\Orckestra.Azure.CloudPublisher\web.config" />
+      </Files>
+    </Add>
+    <Add uninstallerType="Composite.Core.PackageSystem.PackageFragmentInstallers.XmlFileMergePackageFragmentUninstaller,Composite">
+      <XmlFileMerges xmlns="">
+        <XmlFileMerge targetFilePath="~\web.config" changeDefinitionPath="~\web.config.merge.xml" />
+      </XmlFileMerges>
+    </Add>
+  </PackageFragmentUninstallers>
+</PackageInstaller>
