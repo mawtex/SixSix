@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Log.aspx.cs" Inherits="WebApplication1.Log" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Log.aspx.cs"  %>
 
 <!DOCTYPE html>
 
@@ -10,6 +10,10 @@
     <form id="form1" runat="server">
         <div>
             logged...
+            <%
+            System.Diagnostics.Trace.TraceWarning("web forms logging here!!");
+                
+            %>
         </div>
     </form>
 </body>
