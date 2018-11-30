@@ -1,0 +1,22 @@
+# temporary natured files, not to be persisted in a git repo
+.vs/*
+/App_Data/Backups
+/App_Data/Composite/ApplicationState/
+/App_Data/Composite/Cache/
+/App_Data/Composite/LogFiles/
+/App_Data/Search/
+/App_Data/Composite/DataStores/Composite.Data.Types.IFlowInformation.xml
+/App_Data/Composite/DataStores/Composite.Data.Types.IUserConsoleInformation.xml
+/App_Data/Composite/DataStores/Composite.Data.Types.ILockingInformation.xml
+/App_Data/Composite/DataStores/Composite.Plugins.WebClient.SessionStateProviders.DefaultSessionStateProvider.ISessionStateEntry_Unpublished.xml
+*.tmp
+*.ghost
+*.log
+
+# sensitive git login info excluded
+/Composite/InstalledPackages/Orckestra.Azure.CloudPublisher/web.config
+/App_Data/sshkeys/
+
+# exclude CMS Console on target deployment
+/Composite/*
+
