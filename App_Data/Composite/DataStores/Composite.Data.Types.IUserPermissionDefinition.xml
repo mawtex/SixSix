@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserPermissionDefinitionElementsElements>
+  <UserPermissionDefinitionElements Id="e3a70ae6-e4b1-4de8-bd5a-d7464813cfb2" Username="admin" SerializedEntityToken="{&quot;Source&quot;:&quot;VirtualElementProvider&quot;,&quot;Id&quot;:&quot;ID01&quot;,&quot;meta:type&quot;:&quot;Composite.Plugins.Elements.ElementProviders.VirtualElementProvider.VirtualElementProviderEntityToken, Composite&quot;}" />
+</UserPermissionDefinitionElementsElements>
