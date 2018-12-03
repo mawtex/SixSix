@@ -1,0 +1,97 @@
+﻿@using System.Web.Configuration;
+@using LibGit2Sharp;
+@using LibGit2Sharp.Handlers;
+@using System.Globalization;
+@{
+	Layout = @"master.cshtml";
+	string repoPath = Server.MapPath("~");
+    string remoteUrl = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitRemoteUrl"];
+
+	try 
+	{
+		using(var repo = new Repository(repoPath))
+		{
+			repo.Network.Remotes.Where(f=>f.Url == remoteUrl).First();
+		}
+	}
+	catch (Exception ex)
+	{
+		Response.Redirect("init.cshtml");
+	}
+}
+
+	@using (var repo = new Repository(repoPath))
+	{ 
+		if (repo.Head.Tip == null)
+		{
+			<h2>Initial push ready</h2>
+			<p>Push changes to update remote for the first time. The remote is expected to be an empty repo.</p>
+			<p>Ensure the following appSettings correctly exists in web.config.
+				<ul>
+					<li>Orckestra.Azure.CloudPublisher.GitRemoteUrl 
+						<br/>(git remote url)</li>
+					<li>Orckestra.Azure.CloudPublisher.GitUsername 
+						<br/>(remote git username or token)</li>
+					<li>Orckestra.Azure.CloudPublisher.GitPassword 
+						<br/>(remote git password, if token is not used)</li>
+					<li>Orckestra.Azure.CloudPublisher.GitBranch 
+						<br/>(name of branch to work on)</li>
+				</ul>
+			</p>
+		}
+		else
+		{
+			var changes = repo.Diff.Compare<TreeChanges>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory).ToList();
+
+			<h2>Pending changes</h2>
+			if(changes.Any()) 
+			{
+				<p> There are pending changes, waiting to be published. Use the "Publish to Cloud" button above.</p>
+				<p onclick="this.style.display='none'; getElementById('changesTable').style.display=''"> <a>Show changes.</a></p>
+				<table class="table" id="changesTable" style="display:none">
+					<thead>
+						<tr class="head">
+							<th>Change</th>
+							<th>Path</th>
+						</tr>
+					</thead>
+					<tbody id="tablebody">
+						@foreach (TreeEntryChanges c in changes)
+						{
+							<tr>
+								<td>@c.Status</td>
+								<td>@c.Path</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			} else 
+			{
+				<p> No pending changes ...</p>
+			}
+		
+			<h2>History</h2>
+			<table class="table">
+				<thead>
+					<tr class="head">
+						<th>
+							When
+						</th>
+						<th>Who</th>
+						<th>What</th>
+					</tr>
+				</thead>
+				<tbody id="tablebody">
+					@foreach (Commit c in repo.Commits.Take(5))
+					{
+						var RFC2822Format = "ddd dd MMM HH:mm:ss yyyy K";
+						<tr>
+							<td>@c.Author.When.ToString(RFC2822Format, CultureInfo.InvariantCulture)</td>
+							<td>@c.Author.Email</td>
+							<td>@c.Message</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	}

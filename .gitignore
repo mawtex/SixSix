@@ -18,5 +18,4 @@
 /App_Data/sshkeys/
 
 # exclude CMS Console on target deployment
-/Composite/*
 

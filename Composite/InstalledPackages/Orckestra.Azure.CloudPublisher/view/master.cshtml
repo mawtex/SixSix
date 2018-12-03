@@ -1,0 +1,65 @@
+@using System.Web.Configuration;
+@using Composite.C1Console.Security;
+@using Composite.C1Console.Trees;
+@using LibGit2Sharp;
+@{
+	Layout = @"~\Composite\controls\Razor\RazorLayout.cshtml";
+
+    string repoPath = Server.MapPath("~");
+    string remoteUrl = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitRemoteUrl"];
+	string branch = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitBranch"];
+}
+
+@section HtmlHead {
+    <link rel="stylesheet" type="text/css" href="styles.css.aspx" />
+}
+
+<ui:page label="Cloud Publisher" image="${icon:cloud}" id="page">
+	<ui:toolbar id="toolbar">
+		<ui:toolbarbody>
+			<ui:toolbargroup>
+				<ui:toolbarbutton image="${icon:refresh}" label="Refresh view" oncommand="document.location = '/Composite/InstalledPackages/Orckestra.Azure.CloudPublisher/view/status.cshtml';" />
+                @{                
+                    try 
+                    {
+                        using(var repo = new Repository(repoPath))
+                        {
+                            if (repo.Network.Remotes.Any(f=>f.Url == remoteUrl))
+                            {
+                                <ui:toolbarbutton image="${icon:cloud-upload}" label="Publish to cloud" oncommand="this.bindingWindow.bindingMap.pagecover.show(); setTimeout(function(){ document.location = 'push.cshtml' }, 10);" />
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+			</ui:toolbargroup>
+		</ui:toolbarbody>
+	</ui:toolbar>
+    <ui:cover id="pagecover" hidden="true" style="background-color: rgba(255, 255, 255, .7)" />
+	<ui:scrollbox>
+
+        @RenderBody() 
+
+		@{
+			if	(remoteUrl!=null && branch != null)
+			{
+				<p>Active git branch is "@branch" on <a href="@remoteUrl" target="gitwin">@remoteUrl</a></p>
+			}
+			else
+			{
+				<p><strong>Missing AppSettings (web.config) - this has not been configured correctly yet.</strong></p>	
+
+				<p>Ensure the following appSettings correctly exists in web.config, belos /configuration/appSettings.</p>
+				<pre>
+	&lt;add key="Orckestra.Azure.CloudPublisher.GitRemoteUrl" value="https://github.com/Someone/Something.git" />
+	&lt;add key="Orckestra.Azure.CloudPublisher.GitUsername" value="someTokenHere" />
+	&lt;add key="Orckestra.Azure.CloudPublisher.GitPassword" value="" />
+	&lt;add key="Orckestra.Azure.CloudPublisher.GitBranch" value="master" />					
+				</pre>
+			}
+		}
+
+	</ui:scrollbox> 
+</ui:page>

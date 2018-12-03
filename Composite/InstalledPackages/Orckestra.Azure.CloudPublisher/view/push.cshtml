@@ -1,0 +1,159 @@
+@using System.Globalization;
+@using System.Web.Configuration;
+@using LibGit2Sharp;
+@using LibGit2Sharp.Handlers;
+@using Composite.Data;
+@using Composite.Data.Types;
+
+@{
+	Layout = @"master.cshtml";
+
+    HttpContext.Current.Server.ScriptTimeout = 90000;
+
+    try
+    {
+        string repoPath = Server.MapPath("~");
+        using (var repo = new Repository(repoPath))
+        {
+            var changes = repo.Head.Tip == null || repo.Diff.Compare<TreeChanges>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory).Any();
+            string username = Composite.C1Console.Users.UserSettings.Username;
+            string email = "";
+            bool initPush = Request["init"] == "true";
+            var remote = repo.Network.Remotes["origin"];
+            var branchName = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitBranch"];
+            var localBranch = repo.Branches[branchName];
+
+            using (var connection = new DataConnection())
+            {
+                var user = connection.Get<IUser>().Where(u=>u.Username == username).First();
+                email = !string.IsNullOrEmpty(user.Email) ? user.Email : username;
+            }
+
+            while (changes)
+            {
+                bool isChuncked = false;
+
+                if (localBranch == null)
+                {
+                    Branch branch = repo.CreateBranch(branchName); 
+                    localBranch = Commands.Checkout(repo , branch);
+                }
+
+                if (initPush)
+                {
+                    Commands.Stage(repo, ".gitignore"); 
+                }
+                else
+                {
+                    long commitBytesAvailable = 134217728; // 128 MB chuncks
+                    foreach( var change in repo.Diff.Compare<TreeChanges>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory).ToList() )
+                    {
+                        Commands.Stage(repo, change.Path); 
+                        var fileInfo = new System.IO.FileInfo(Server.MapPath("~/"+change.Path));
+                        if (change.Status == ChangeKind.Added && fileInfo.Exists) 
+                        {
+                            commitBytesAvailable -= fileInfo.Length;
+                            if (commitBytesAvailable < 0)
+                            {
+                                isChuncked = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                bool hasStagedChanges = repo.Head.Tip == null || repo.Diff.Compare<TreeChanges>(repo.Head.Tip.Tree, DiffTargets.Index).Any();
+
+                if (hasStagedChanges)
+                {
+                    Signature author = new Signature(username, email, DateTime.Now);
+                    Signature committer = author;
+
+                    string commitMessage = initPush ? "Initial commit from CMS Cloud Publisher" : ("User publish from CMS" + (isChuncked ? " (CHUNKED)" : ""));
+
+                    Commit commit = repo.Commit(commitMessage, author, committer);
+                    Composite.Core.Log.LogInformation("Cloud Publisher", "Commit done :)");
+                }
+
+                repo.Branches.Update(localBranch,
+                    b => b.Remote = remote.Name,
+                    b => b.UpstreamBranch = localBranch.CanonicalName);
+
+                LibGit2Sharp.PushOptions options = new LibGit2Sharp.PushOptions();
+
+                var sshPrivateKeyPath = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.PrivateKeyPath"];
+                var sshPublicKeyPath = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.PublicKeyPath"];
+
+                if (sshPrivateKeyPath!=null && sshPublicKeyPath!=null)
+                {
+                    options.CredentialsProvider = (_url, _user, _cred) => new LibGit2Sharp.SshUserKeyCredentials()
+                    {
+                        Username = _user,
+                        Passphrase = "",
+                        PublicKey = Server.MapPath(sshPublicKeyPath),
+                        PrivateKey = Server.MapPath(sshPrivateKeyPath),
+                    };
+                }
+                else
+                {
+                    var gitUsername = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitUsername"];
+                    var gitPassword = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitPassword"] ?? "";
+
+                    if (gitUsername==null) 
+                    {
+                        throw new InvalidOperationException("Missing one of the config sets Orckestra.Azure.CloudPublisher.PrivateKeyPath and Orckestra.Azure.CloudPublisher.PublicKeyPath or Orckestra.Azure.CloudPublisher.GitUsername and Orckestra.Azure.CloudPublisher.GitPassword."); 
+                    }
+
+                    options.CredentialsProvider = new CredentialsHandler(
+                        (url, usernameFromUrl, types) =>
+                            new UsernamePasswordCredentials()
+                            {
+                                Username = gitUsername,
+                                Password = gitPassword
+                            });
+                }
+
+                try
+                {
+                    repo.Network.Push(localBranch, options);
+                    Composite.Core.Log.LogInformation("Cloud Publisher", "Push done :)");
+                }
+                catch(Exception ex)
+                {
+                    if (initPush=true)
+                    {
+                        repo.Network.Remotes.Remove("origin");
+                    }
+                    Composite.Core.Log.LogError("Cloud Publisher", ex);
+                    <h1>Failed to push to remote git repo.</h1>
+                    if (ex.Message.ToLower() == "too many redirects or authentication replays")
+                    {
+                        <h2>Authentication problem - please review web.config appSettings for git user and password / ssh keys.</h2>
+                    }
+                    if (typeof(NonFastForwardException).IsAssignableFrom(ex.GetType()))
+                    {
+                        <h2>The remote repo has changes not on this local site.</h2>
+                        <p>You likely need to pull down changes to this site (repo) or point to another (empty) remote repo / branch. This tool do not support pulling down changes, use std git tooling for this.</p>
+                    }
+                    else
+                    {
+                        <h2>@ex.Message</h2>
+                    }
+                    <pre>@ex.ToString()</pre>
+                    return;
+                }
+
+                changes = !initPush && isChuncked && (repo.Head.Tip == null || repo.Diff.Compare<TreeChanges>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory).Any());
+            }
+        }
+    } 
+    catch (Exception ex)
+    {
+        Composite.Core.Log.LogError("Cloud Publisher, push.cshtml", ex);
+        <h1>@ex.Message</h1>
+        <pre>@ex.ToString()</pre>
+        return;
+    }
+
+    Response.Redirect("status.cshtml");
+}

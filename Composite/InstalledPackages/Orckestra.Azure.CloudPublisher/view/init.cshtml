@@ -1,0 +1,60 @@
+@using System.Web.Configuration;
+@using LibGit2Sharp;
+@using LibGit2Sharp.Handlers;
+
+@{
+	Layout = @"master.cshtml";
+
+    string repoPath = Server.MapPath("~");
+    string remoteUrl = WebConfigurationManager.AppSettings["Orckestra.Azure.CloudPublisher.GitRemoteUrl"];
+
+    if (remoteUrl==null)
+    {
+        return;
+    }
+
+	try 
+	{
+        var repo = new Repository(repoPath);
+        repo.Dispose();
+	}
+	catch (RepositoryNotFoundException)
+	{
+        try
+        {
+            var destination = Repository.Init(repoPath, false);
+            using (var repo =  new Repository (destination))
+            {
+                Signature author = new Signature("init", "init", DateTime.Now);
+                Signature committer = author;
+
+                string commitMessage = "Repo created by CMS Cloud Publisher" ;
+
+                Commit commit = repo.Commit(commitMessage, author, committer);
+            }
+        }
+        catch(Exception ex)
+        {
+    		Composite.Core.Log.LogError("Cloud Publisher", ex);
+            <h1>Failed to initialize local git repo.</h1>
+            <pre>@ex.ToString()</pre>
+            return;
+        }
+    }
+
+    using (var repo = new Repository(repoPath))
+    {
+        var remotes = repo.Network.Remotes;
+
+        if (!remotes.Any(f=>f.Url == remoteUrl))
+        {
+            if (remotes["origin"]!=null)
+            {
+                remotes.Remove("origin");
+            }
+            remotes.Add("origin", remoteUrl);
+        }
+    }
+
+    Response.Redirect("push.cshtml?init=true");
+}
