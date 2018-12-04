@@ -1,0 +1,17 @@
+﻿@inherits RazorFunction
+
+@functions {
+    public override string FunctionDescription
+    {
+        get  { return "Shortly describe this function here"; }
+    }
+
+}
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://www.composite.net/ns/function/1.0">
+    <head>
+    </head>
+    <body>
+        <h1>Virtual path = @System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath</h1>
+    </body>
+</html>
