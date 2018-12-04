@@ -2607,12 +2607,12 @@ ui|explorerdecks {
   height: 110px;
   width: 250px;
   margin: 20px auto 30px auto;
-  background-image: url("../images/logo.png?cacheversion=1543844906757");
+  background-image: url("../images/logo.png?cacheversion=1543939924865");
   background-position: center center;
   background-repeat: no-repeat;
 }
 .brand-logo.dark {
-  background-image: url("../images/logo-dark.png?cacheversion=1543844906757");
+  background-image: url("../images/logo-dark.png?cacheversion=1543939924865");
 }
 .company-logo-wrapper {
   height: 50px;
@@ -4291,7 +4291,7 @@ ui|dock.start ui|docktabs {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  background-image: url("../images/top-page-cover-bg.jpg?cacheversion=1543844906770");
+  background-image: url("../images/top-page-cover-bg.jpg?cacheversion=1543939924876");
 }
 .splash-bg:after {
   content: "";

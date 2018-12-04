@@ -1,0 +1,2 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageInfo name="C1 CMS 6.6" groupName="Composite.Updates" version="1.0.0" author="Orckestra A/S" website="c1.orckestra.com" description="C1 CMS 6.4C1 CMS 6.6" installDate="2018-12-04T17:19:18.3168278+01:00" installedBy="admin" isLocalInstalled="true" canBeUninstalled="false" flushOnCompletion="false" reloadConsoleOnCompletion="true" systemLocking="hard" xmlns="http://www.composite.net/ns/management/packageinstaller/1.0" />
